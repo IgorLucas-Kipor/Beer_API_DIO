@@ -1,6 +1,6 @@
 package com.igorlucas.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Optional;
 
@@ -38,26 +38,47 @@ public class BeerServiceTest {
 		
 		//given
 		
-		BeerDTO expetedBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
-		Beer expectedSavedBeer = beerMapper.toModel(expetedBeerDTO);
+		BeerDTO expectedBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+		Beer expectedSavedBeer = beerMapper.toModel(expectedBeerDTO);
 		
 		
 		//when
 		
-		Mockito.when(beerRepository.findByName(expetedBeerDTO.getName())).thenReturn(Optional.empty());
+		Mockito.when(beerRepository.findByName(expectedBeerDTO.getName())).thenReturn(Optional.empty());
 		Mockito.when(beerRepository.save(expectedSavedBeer)).thenReturn(expectedSavedBeer);
 		
 		//then
 		
-		BeerDTO createdBeerDTO = beerService.createBeer(expetedBeerDTO);
+		BeerDTO createdBeerDTO = beerService.createBeer(expectedBeerDTO);
 		
-		MatcherAssert.assertThat(createdBeerDTO.getId(), Matchers.is(Matchers.equalTo(expetedBeerDTO.getId())));
-		MatcherAssert.assertThat(createdBeerDTO.getName(), Matchers.is(Matchers.equalTo(expetedBeerDTO.getName())));
-		MatcherAssert.assertThat(createdBeerDTO.getQuantity(), Matchers.is(Matchers.equalTo(expetedBeerDTO.getQuantity())));
+		MatcherAssert.assertThat(createdBeerDTO.getId(), Matchers.is(Matchers.equalTo(expectedBeerDTO.getId())));
+		MatcherAssert.assertThat(createdBeerDTO.getName(), Matchers.is(Matchers.equalTo(expectedBeerDTO.getName())));
+		MatcherAssert.assertThat(createdBeerDTO.getQuantity(), Matchers.is(Matchers.equalTo(expectedBeerDTO.getQuantity())));
+		
+		MatcherAssert.assertThat(createdBeerDTO.getQuantity(), Matchers.greaterThan(2));
 		
 //		assertEquals(expetedBeerDTO.getId(), createdBeerDTO.getId());
 //		assertEquals(expetedBeerDTO.getName(), createdBeerDTO.getName());
 		
 	}
+	
+	@Test
+	void whenAlreadyRegisteredBeerInformedThenAnExceptionShouldBeThrown() {
+		
+		//given
+		
+		BeerDTO expectedBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+		Beer duplicatedBeer = beerMapper.toModel(expectedBeerDTO);
+		
+		//when
+		
+		Mockito.when(beerRepository.findByName(expectedBeerDTO.getName())).thenReturn(Optional.of(duplicatedBeer));
+		
+		//then
+		
+		assertThrows(BeerAlreadyRegisteredException.class, () -> beerService.createBeer(expectedBeerDTO));
+	}
+	
+	
 
 }
