@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Collections;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -129,6 +131,45 @@ public class BeerControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get(BEER_API_URL_PATH + "/" + beerDTO.getName())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+    
+    @Test
+    void whenGETListWithBeersIsCalledThenStatusOkIsReturned() throws Exception {
+    	
+    	//given
+    	
+    	BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+    	
+    	//when
+    	
+    	Mockito.when(beerService.listAll()).thenReturn(Collections.singletonList(beerDTO));
+    	
+    	//then
+    	
+        mockMvc.perform(MockMvcRequestBuilders.get(BEER_API_URL_PATH)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+		        .andExpect(jsonPath("$[0].name", is(beerDTO.getName())))
+		        .andExpect(jsonPath("$[0].brand", is(beerDTO.getBrand())))
+		        .andExpect(jsonPath("$[0].type", is(beerDTO.getType().toString())));
+    }
+    
+    @Test
+    void whenGETListWithoutBeersIsCalledThenStatusOkIsReturned() throws Exception {
+    	
+    	//given
+    	
+    	BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+    	
+    	//when
+    	
+    	Mockito.when(beerService.listAll()).thenReturn(Collections.singletonList(beerDTO));
+    	
+    	//then
+    	
+        mockMvc.perform(MockMvcRequestBuilders.get(BEER_API_URL_PATH)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
     
     
