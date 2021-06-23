@@ -1,5 +1,8 @@
 package com.igorlucas.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Optional;
@@ -17,6 +20,7 @@ import com.igorlucas.builder.BeerDTOBuilder;
 import com.igorlucas.dto.BeerDTO;
 import com.igorlucas.entity.Beer;
 import com.igorlucas.exceptions.BeerAlreadyRegisteredException;
+import com.igorlucas.exceptions.BeerNotFoundException;
 import com.igorlucas.mapper.BeerMapper;
 import com.igorlucas.repository.BeerRepository;
 
@@ -77,6 +81,41 @@ public class BeerServiceTest {
 		//then
 		
 		assertThrows(BeerAlreadyRegisteredException.class, () -> beerService.createBeer(expectedBeerDTO));
+	}
+	
+	@Test
+	void whenAValidBeerNameIsGivenThenReturnABeer() throws BeerNotFoundException {
+		
+		//given
+		
+		BeerDTO expectedFoundBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+		Beer expectedFoundBeer = beerMapper.toModel(expectedFoundBeerDTO);
+		
+		//when
+		
+		Mockito.when(beerRepository.findByName(expectedFoundBeer.getName())).thenReturn(Optional.of(expectedFoundBeer));
+		
+        // then
+		
+        BeerDTO foundBeerDTO = beerService.findByName(expectedFoundBeerDTO.getName());
+
+        assertThat(foundBeerDTO, is(equalTo(expectedFoundBeerDTO)));
+	}
+	
+	@Test
+	void whenNotRegisteredBeerNameIsGivenThenThrowAnException() {
+		
+		//given
+		
+		BeerDTO expectedFoundBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+		
+		//when
+		
+		Mockito.when(beerRepository.findByName(expectedFoundBeerDTO.getName())).thenReturn(Optional.empty());
+		
+        // then
+		
+        assertThrows(BeerNotFoundException.class, () -> beerService.findByName(expectedFoundBeerDTO.getName()));
 	}
 	
 	
